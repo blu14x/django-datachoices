@@ -1,0 +1,17 @@
+asgiref==3.8.1
+Django==5.2.3
+setuptools==80.9.0
+sqlparse==0.5.3
+psycopg==3.2.9
+psycopg-binary==3.2.9
+
+# testing
+pytest==7.4.3
+pytest-django==4.7.0
+pytest-cov==4.1.0
+codecov==2.1.13
+unittest-parametrize==1.7.0
+
+# linting
+ruff==0.3.0
+pre-commit==3.6.0
