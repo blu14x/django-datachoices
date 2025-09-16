@@ -1,5 +1,3 @@
-import os
-
 SECRET_KEY = 'secretkeyfortestingistopsecret'
 
 DEBUG = True
@@ -46,10 +44,10 @@ STATIC_URL = 'static/'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
-        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+        'HOST': 'localhost',
+        'PORT': '5432',
         'NAME': 'dj_dc_database',
-        'USER': os.environ.get('POSTGRES_USER', 'postgres'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'postgres'),
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
     }
 }
