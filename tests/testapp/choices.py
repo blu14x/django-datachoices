@@ -1,13 +1,6 @@
 from dataclasses import dataclass
 
 from datachoices import DataChoices
-from django.db.models import TextChoices
-
-
-class ColorChoices(TextChoices):
-    RED = 'RED', 'Red'
-    GREEN = 'GREEN', 'Green'
-    BLUE = 'BLUE', 'Blue'
 
 
 @dataclass(frozen=True)

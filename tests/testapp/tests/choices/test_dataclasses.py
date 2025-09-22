@@ -51,22 +51,22 @@ class DataclassesTestCase(DataChoicesTestCase):
         self.assertEqual(self.ChoicesWithParams.FOO, 'foo')
 
     def test_inner_value(self):
-        self.assertEqual(self.SomeClass, type(self.Choices.FOO._value_))
+        self.assertTrue(isinstance(self.Choices.FOO._value_, self.SomeClass))
         self.assertEqual(self.Choices.FOO._value_.id, 'foo')
         self.assertEqual(self.Choices.FOO._value_.text, 'footastic')
 
     def test_invalid_value(self):
-        with self.assertRaises(ValueError) as errContext:
+        with self.assertRaises(ValueError) as errCtx:
             members = {'FOO': (69, 'footastic')}
             self._make_choices_class('Choices', members, self.SomeClass, value='id')
 
         self.assertEqual(
             "value of <enum 'Choices'> member FOO must be a non-empty string",
-            str(errContext.exception),
+            str(errCtx.exception),
         )
 
     def test_duplicated_value(self):
-        with self.assertRaises(ValueError) as errContext:
+        with self.assertRaises(ValueError) as errCtx:
             members = {
                 'FOO': ('foo', 'footastic'),
                 'BAR': ('foo', 'barmazing'),
@@ -75,5 +75,5 @@ class DataclassesTestCase(DataChoicesTestCase):
 
         self.assertEqual(
             "duplicate values found in <enum 'Choices'>: [FOO, BAR] -> foo",
-            str(errContext.exception),
+            str(errCtx.exception),
         )

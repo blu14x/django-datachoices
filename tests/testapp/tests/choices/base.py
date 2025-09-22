@@ -1,6 +1,5 @@
-from django.test import SimpleTestCase
-
 from datachoices import DataChoices
+from django.test import SimpleTestCase
 
 __unittest = True
 
