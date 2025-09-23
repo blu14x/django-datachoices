@@ -1,7 +1,7 @@
 [project]
 name = "django-datachoices"
 description = "A lightweight utility for Django that extends field choices to support complex data types."
-version = "0.0.4"
+version = "0.0.5"
 authors = [
   { name="blu14x" },
 ]

@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.0.5 (2025-09-23)
+
+### Continuous Integration
+
+- **release**: Don't skip deploy job
+  ([`dd425b6`](https://github.com/blu14x/django-datachoices/commit/dd425b621c28489212b548c053a96811e1b01222))
+
+
 ## v0.0.4 (2025-09-23)
 
 ### Continuous Integration
