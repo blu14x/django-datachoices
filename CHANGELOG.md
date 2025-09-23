@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v0.0.4 (2025-09-23)
+
+### Continuous Integration
+
+- **release**: Remove unnecessary steps
+  ([`4f3f328`](https://github.com/blu14x/django-datachoices/commit/4f3f328b06121053f1162c8d3be61cb3a2d5c930))
+
+
 ## v0.0.3 (2025-09-23)
 
 ### Chores
