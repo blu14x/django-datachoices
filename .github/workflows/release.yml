@@ -45,16 +45,6 @@ jobs:
       - name: Evaluate | Verify upstream has NOT changed
         run: .github/scripts/verify-upstream.sh
 
-      - name: SSH | Setup SSH Agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
-
-      - name: Fingerprint | Add github.com to known_hosts
-        run: |
-          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-
       - name: Action | Semantic Version Release
         id: release
         uses: python-semantic-release/python-semantic-release@v10.4.1
@@ -70,14 +60,14 @@ jobs:
 
       - name: Publish | Upload to GitHub Release Assets
         uses: python-semantic-release/publish-action@v10.4.1
-        if: ${{ !inputs.no_operation_mode && steps.release.outputs.released == 'true'}}
+        if: ${{ !inputs.no_operation_mode && steps.release.outputs.released == 'true' }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ steps.release.outputs.tag }}
 
       - name: Upload | Distribution Artifacts
         uses: actions/upload-artifact@v4
-        if: ${{ !inputs.no_operation_mode && steps.release.outputs.released == 'true'}}
+        if: ${{ !inputs.no_operation_mode && steps.release.outputs.released == 'true' }}
         with:
           name: distribution-artifacts
           path: dist
