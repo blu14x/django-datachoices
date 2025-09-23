@@ -1,12 +1,15 @@
 from django.contrib import admin
-from testapp.models import TestModel
+from testapp.models import (
+    DataChoiceArrayTestModel,
+    DataChoiceTestModel,
+)
 
 
-@admin.register(TestModel)
-class TestModelAdmin(admin.ModelAdmin):
-    readonly_fields = [  # noqa: RUF012
-        'get_shape_display',
-        'get_shape_data',
-        'get_materials_display',
-        'get_materials_data',
-    ]
+@admin.register(DataChoiceTestModel)
+class DataChoiceTestModelAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(DataChoiceArrayTestModel)
+class DataChoiceArrayTestModelAdmin(admin.ModelAdmin):
+    pass

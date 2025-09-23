@@ -6,66 +6,68 @@ from django.forms import MultipleChoiceField
 from django.utils.encoding import force_str
 from django.utils.hashable import make_hashable
 from django.utils.text import get_text_list
-from django.utils.translation import gettext_lazy as _
 
 from .choices import DataChoices
 
 
-def _get_FIELD_data(self, field):
-    data_choices = getattr(field, 'data_choices', None)
-    if not data_choices:
-        return None
-
-    value = getattr(self, field.attname)
-    try:
-        member = data_choices[value]
-    except KeyError:
-        return None
-
-    return getattr(member, '_value_')
-
-
-def _get_FIELD_data_array(self, field):
-    data_choices = getattr(field.base_field, 'data_choices', None)
-    if not data_choices:
-        return []
-
-    values = getattr(self, field.attname)
-    if not values:
-        return []
-
-    members = []
-    for value in values:
-        try:
-            members.append(data_choices[value])
-        except KeyError:
-            return None
-
-    return [getattr(member, '_value_') for member in members]
-
-
-def _get_FIELD_display_array(self, field):
-    values = getattr(self, field.attname)
-    if not values:
-        return ''
-
-    choices_dict = dict(make_hashable(field.base_field.flatchoices))
-    strings = [
-        force_str(choices_dict.get(make_hashable(value), value), strings_only=True)
-        for value in values
-    ]
-    return get_text_list(strings, last_word=_('and'))
-
-
-class DataChoiceField(models.CharField):  # noqa: D101
-    def __init__(self, *args, choices=None, **kwargs):  # noqa: D107
+class DataChoicesFieldMixin:  # noqa: D101
+    def _check_datachoices(self, choices=None):
         if not isinstance(choices, type) or not issubclass(choices, DataChoices):
             raise TypeError(
                 f'Must provide a DataChoices subclass for choices. Got {type(choices).__name__}'
             )
+        return choices
 
-        self.data_choices = choices
-        kwargs['choices'] = choices.choices
+    def contribute_to_class(self, cls, name, **kwargs):  # noqa: D102
+        display_pname = f'get_{name}_display'
+        if display_pname not in cls.__dict__:
+            setattr(cls, display_pname, partialmethod(_get_FIELD_display, field=self))
+        data_pname = f'get_{name}_data'
+        if data_pname not in cls.__dict__:
+            setattr(cls, data_pname, partialmethod(_get_FIELD_data, field=self))
+        super().contribute_to_class(cls, name, **kwargs)
+
+
+def _get_FIELD_display(instance, field):
+    values = getattr(instance, field.attname)
+    if not isinstance(values, list):
+        values = [values]
+
+    field = getattr(field, 'base_field', field)
+    choices_dict = dict(make_hashable(field.flatchoices))
+
+    strings = [
+        force_str(choices_dict.get(make_hashable(value), value), strings_only=True)
+        for value in values
+    ]
+    return get_text_list(strings, last_word='&')
+
+
+def _get_FIELD_data(instance, field):
+    values = getattr(instance, field.attname)
+    many = True
+    if not isinstance(values, list):
+        values = [values] if values else []
+        many = False
+
+    dc_field = getattr(field, 'base_field', field)
+    data_choices = getattr(dc_field, 'data_choices', None)
+    if not data_choices:
+        return [] if many else None
+
+    members = []
+    for value in values:
+        if value in data_choices:
+            members.append(data_choices[value])
+    if many:
+        return [getattr(member, '_value_') for member in members]
+    return getattr(members[0], '_value_') if members else None
+
+
+class DataChoiceField(DataChoicesFieldMixin, models.CharField):  # noqa: D101
+    def __init__(self, *args, choices=None, **kwargs):  # noqa: D107
+        self.data_choices = self._check_datachoices(choices)
+        kwargs['choices'] = self.data_choices.choices
         super().__init__(*args, **kwargs)
 
     def deconstruct(self):  # noqa: D102
@@ -74,31 +76,18 @@ class DataChoiceField(models.CharField):  # noqa: D101
         return name, path, args, kwargs
 
     def get_prep_value(self, value):  # noqa: D102
-        if isinstance(value, self.data_choices):
+        if self.data_choices and isinstance(value, self.data_choices):
             value = value.value
         return super().get_prep_value(value)
 
-    def contribute_to_class(self, cls, name, **kwargs):  # noqa: D102
-        super().contribute_to_class(cls, name, **kwargs)
-        self._add_get_FIELD_data(cls)
-
-    def _add_get_FIELD_data(self, cls):
-        prop_name = f'get_{self.name}_data'
-        if prop_name not in cls.__dict__:
-            setattr(
-                cls,
-                prop_name,
-                partialmethod(_get_FIELD_data, field=self),
-            )
+    def to_python(self, value):  # noqa: D102
+        types = (self.data_choices, str) if self.data_choices else str
+        return value if isinstance(value, types) or value is None else str(value)
 
 
-class DataChoiceArrayField(ArrayField):  # noqa: D101
+class DataChoiceArrayField(DataChoicesFieldMixin, ArrayField):  # noqa: D101
     def __init__(self, choices=None, **kwargs):  # noqa: D107
-        if not isinstance(choices, type) or not issubclass(choices, DataChoices):
-            raise TypeError(
-                f'Must provide a DataChoices subclass for choices. Got {type(choices).__name__}'
-            )
-        kwargs['base_field'] = DataChoiceField(choices=choices)
+        kwargs['base_field'] = DataChoiceField(choices=self._check_datachoices(choices))
         super().__init__(**kwargs)
 
     def deconstruct(self):  # noqa: D102
@@ -114,26 +103,3 @@ class DataChoiceArrayField(ArrayField):  # noqa: D101
         }
         defaults.update(kwargs)
         return super(ArrayField, self).formfield(**defaults)
-
-    def contribute_to_class(self, cls, name, **kwargs):  # noqa: D102
-        super().contribute_to_class(cls, name, **kwargs)
-        self._add_get_FIELD_data(cls)
-        self._add_get_FIELD_display(cls)
-
-    def _add_get_FIELD_data(self, cls):
-        prop_name = f'get_{self.name}_data'
-        if prop_name not in cls.__dict__:
-            setattr(
-                cls,
-                prop_name,
-                partialmethod(_get_FIELD_data_array, field=self),
-            )
-
-    def _add_get_FIELD_display(self, cls):
-        prop_name = f'get_{self.name}_display'
-        if prop_name not in cls.__dict__:
-            setattr(
-                cls,
-                prop_name,
-                partialmethod(_get_FIELD_display_array, field=self),
-            )

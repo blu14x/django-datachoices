@@ -1,0 +1,38 @@
+name: Linting
+
+on:
+  pull_request:
+jobs:
+  commitlint:
+    name: Conventional Commits
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Conventional Commits
+        uses: opensource-nepal/commitlint@v1
+
+  ruff-check:
+    name: Ruff check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -e .
+
+      - name: Run ruff check
+        run: ruff check --output-format=github .
+
+  ruff-format:
+    name: Ruff format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -e .
+
+      - name: Run ruff format
+        run: ruff format --check .

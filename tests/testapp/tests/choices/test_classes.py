@@ -59,17 +59,17 @@ class ClassesTestCase(DataChoicesTestCase):
             id = 420
             text = 'one'
 
-        with self.assertRaises(ValueError) as errContext:
+        with self.assertRaises(ValueError) as errCtx:
             members = {'FOO': NumberClass}
             self._make_choices_class('Choices', members, value='id')
 
         self.assertEqual(
             "value of <enum 'Choices'> member FOO must be a non-empty string",
-            str(errContext.exception),
+            str(errCtx.exception),
         )
 
     def test_duplicated_value(self):
-        with self.assertRaises(ValueError) as errContext:
+        with self.assertRaises(ValueError) as errCtx:
             members = {
                 'FOO': self.FooClass,
                 'BAR': self.FooClass,
@@ -78,5 +78,5 @@ class ClassesTestCase(DataChoicesTestCase):
 
         self.assertEqual(
             "duplicate values found in <enum 'Choices'>: [FOO, BAR] -> foo",
-            str(errContext.exception),
+            str(errCtx.exception),
         )

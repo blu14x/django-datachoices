@@ -1,0 +1,42 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+    tags:
+      - v*.*.*
+jobs:
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: dj_dc_database
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -e .
+
+      - name: Run migrations
+        run: python tests/manage.py migrate
+
+      - name: Run tests with coverage
+        run: pytest
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
