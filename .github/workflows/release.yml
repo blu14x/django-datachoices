@@ -3,70 +3,84 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      no_operation_mode:
-        description: 'No operation mode'
-        type: boolean
-        default: true
       force:
-        description: 'Force release type'
+        description: 'Release type'
         required: false
         type: choice
+        default: '(auto)'
         options:
+          - '(auto)'
           - 'major'
           - 'minor'
           - 'patch'
           - 'prerelease'
+      preview:
+        description: 'Preview (No operation mode)'
+        type: boolean
+        default: true
 
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    if: github.ref_name == github.event.repository.default_branch
     concurrency:
       group: ${{ github.workflow }}-release-${{ github.ref_name }}
       cancel-in-progress: false
     permissions:
+      id-token: write
       contents: write
     steps:
-      - name: Setup | Checkout Repository on Release Branch
+      - name: Checkout Repository
         uses: actions/checkout@v5
         with:
+          token: ${{ secrets.RELEASE_TOKEN }}
           ref: ${{ github.ref_name }}
           fetch-depth: 0
 
-      - name: Setup | Force release branch to be at workflow sha
-        run: |
-          git reset --hard ${{ github.sha }}
+      - name: Force branch to be at workflow sha
+        run: git reset --hard ${{ github.sha }}
 
-      - name: Evaluate | Verify upstream has NOT changed
+      - name: Verify upstream has NOT changed
         run: .github/scripts/verify-upstream.sh
 
-      - name: Action | Semantic Version Release
+      - name: Semantic Version Release
         id: release
         uses: python-semantic-release/python-semantic-release@v10.4.1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          no_operation_mode: ${{ inputs.no_operation_mode }}
-          force: ${{ inputs.force }}
+          github_token: ${{ secrets.RELEASE_TOKEN }}
+          no_operation_mode: ${{ inputs.preview }}
+          force: ${{ inputs.force == '(auto)' && '' || inputs.force }}
 
-      - name: Publish | Upload to GitHub Release Assets
+      - name: Check if publication should be made
+        id: publish_check
+        run: echo "publish=$([[ '${{ inputs.preview }}' == 'false' && '${{ steps.release.outputs.released }}' == 'true' ]] && echo true || echo false)" >> $GITHUB_OUTPUT
+
+      - name: Upload to GitHub Release Assets
         uses: python-semantic-release/publish-action@v10.4.1
-        if: steps.release.outputs.released == 'true'
+        if: ${{ steps.publish_check.outputs.publish == 'true' }}
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.RELEASE_TOKEN }}
           tag: ${{ steps.release.outputs.tag }}
 
-      - name: Upload | Distribution Artifacts
+      - name: Distribution Artifacts
         uses: actions/upload-artifact@v4
+        if: ${{ steps.publish_check.outputs.publish == 'true' }}
         with:
           name: distribution-artifacts
           path: dist
           if-no-files-found: error
 
+    outputs:
+      publish: ${{ steps.publish_check.outputs.publish }}
+
+
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
     needs: release
-    if: ${{ needs.release.outputs.released == 'true' }}
+    if: ${{ needs.release.outputs.publish == 'true' }}
+    environment: pypi
     permissions:
       contents: read
       id-token: write
@@ -79,8 +93,9 @@ jobs:
           path: dist
 
       - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@v1
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: dist
-          print-hash: true
           verbose: true
+          print-hash: true
+          skip-existing: true
+          repository-url: https://test.pypi.org/legacy/
