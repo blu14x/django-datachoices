@@ -1,6 +1,6 @@
 [project]
 name = "django-datachoices"
-description = "A lightweight utility for Django that extends field choices to support complex data types."
+description = "A utility for Django to bind complex data to field choices."
 version = "0.1.2"
 authors = [
   { name="blu14x" },
@@ -9,9 +9,8 @@ readme = "README.md"
 requires-python = ">=3.6"
 classifiers = [
     "Topic :: Utilities",
-    "Operating System :: OS Independent",
     "Framework :: Django",
-    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
 ]
 license = { file = "LICENSE" }
 
