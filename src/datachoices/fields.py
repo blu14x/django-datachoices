@@ -11,7 +11,8 @@ from .choices import DataChoices
 
 
 class DataChoicesFieldMixin:  # noqa: D101
-    def _check_datachoices(self, choices=None):
+    @staticmethod
+    def _check_datachoices(choices=None):
         if not isinstance(choices, type) or not issubclass(choices, DataChoices):
             raise TypeError(
                 f'Must provide a DataChoices subclass for choices. Got {type(choices).__name__}'
@@ -19,12 +20,12 @@ class DataChoicesFieldMixin:  # noqa: D101
         return choices
 
     def contribute_to_class(self, cls, name, **kwargs):  # noqa: D102
-        display_pname = f'get_{name}_display'
-        if display_pname not in cls.__dict__:
-            setattr(cls, display_pname, partialmethod(_get_FIELD_display, field=self))
-        data_pname = f'get_{name}_data'
-        if data_pname not in cls.__dict__:
-            setattr(cls, data_pname, partialmethod(_get_FIELD_data, field=self))
+        display_prop = f'get_{name}_display'
+        data_prop = f'get_{name}_data'
+        if display_prop not in cls.__dict__:
+            setattr(cls, display_prop, partialmethod(_get_FIELD_display, field=self))
+        if data_prop not in cls.__dict__:
+            setattr(cls, data_prop, partialmethod(_get_FIELD_data, field=self))
         super().contribute_to_class(cls, name, **kwargs)
 
 
@@ -50,8 +51,8 @@ def _get_FIELD_data(instance, field):
         values = [values] if values else []
         many = False
 
-    dc_field = getattr(field, 'base_field', field)
-    data_choices = getattr(dc_field, 'data_choices', None)
+    field = getattr(field, 'base_field', field)
+    data_choices = getattr(field, 'data_choices', None)
     if not data_choices:
         return [] if many else None
 
@@ -64,7 +65,9 @@ def _get_FIELD_data(instance, field):
     return getattr(members[0], '_value_') if members else None
 
 
-class DataChoiceField(DataChoicesFieldMixin, models.CharField):  # noqa: D101
+class DataChoiceField(DataChoicesFieldMixin, models.CharField):
+    """Model field for DataChoices."""
+
     def __init__(self, *args, choices=None, **kwargs):  # noqa: D107
         self.data_choices = self._check_datachoices(choices)
         kwargs['choices'] = self.data_choices.choices
@@ -85,7 +88,9 @@ class DataChoiceField(DataChoicesFieldMixin, models.CharField):  # noqa: D101
         return value if isinstance(value, types) or value is None else str(value)
 
 
-class DataChoiceArrayField(DataChoicesFieldMixin, ArrayField):  # noqa: D101
+class DataChoiceArrayField(DataChoicesFieldMixin, ArrayField):
+    """Array model field for DataChoices."""
+
     def __init__(self, choices=None, **kwargs):  # noqa: D107
         kwargs['base_field'] = DataChoiceField(choices=self._check_datachoices(choices))
         super().__init__(**kwargs)

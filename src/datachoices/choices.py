@@ -11,33 +11,59 @@ else:
 
 
 def validate_data_choices_enum(enumeration):  # noqa: D103
-    value_member_map = {}
-    for name, member in enumeration.__members__.items():
-        if not isinstance(member.value, str) or not member.value:
+    value_map = {}
+    label_map = {}
+
+    def _check_prop_is_valid(
+        member_name,
+        member_value,
+        prop_map,
+        prop_name: str,
+        prop_attr: str,
+    ):
+        try:
+            value = getattr(member_value, prop_name)
+        except (AttributeError, KeyError):
             raise ValueError(
-                f'value of {enumeration} member {name} must be a non-empty string'
+                f'{prop_name} property "{prop_attr}" is invalid for {enumeration} member {member_name}'
+            )
+        if not value or not isinstance(value, str):
+            raise ValueError(
+                f'{prop_name} property "{prop_attr}" of {enumeration} member {member_name} must be a non-empty string'
+            )
+        prop_map.setdefault(value, []).append(member_name)
+
+    def _check_prop_duplicates(prop_map, prop_name: str):
+        duplicate_values = {
+            value: members for value, members in prop_map.items() if len(members) > 1
+        }
+        if duplicate_values:
+            alias_details = ', '.join(
+                [
+                    f'[{", ".join(aliases)}] -> {value}'
+                    for value, aliases in duplicate_values.items()
+                ]
+            )
+            raise ValueError(
+                f'duplicate {prop_name}s found in {enumeration}: {alias_details}'
             )
 
-        value_member_map.setdefault(member.value, []).append(name)
-    duplicates = {
-        value: members
-        for value, members in value_member_map.items()
-        if len(members) > 1
-    }
-    if duplicates:
-        alias_details = ', '.join(
-            [
-                f'[{", ".join(aliases)}] -> {value}'
-                for value, aliases in duplicates.items()
-            ]
+    for name, member in enumeration.__members__.items():
+        _check_prop_is_valid(
+            name, member, value_map, 'value', enumeration.__member_value__
         )
-        raise ValueError(f'duplicate values found in {enumeration}: {alias_details}')
+        _check_prop_is_valid(
+            name, member, label_map, 'label', enumeration.__member_label__
+        )
+
+    _check_prop_duplicates(value_map, 'value')
+    _check_prop_duplicates(label_map, 'label')
 
     return enumeration
 
 
 class DataChoicesMeta(ChoicesType):
-    """Modified ChoicesType metaclass for DataChoices."""
+    """Metaclass for creating DataChoices."""
 
     def __new__(  # noqa: D102
         metacls, classname, bases, class_dict, label='', value='', **kwargs
@@ -49,7 +75,7 @@ class DataChoicesMeta(ChoicesType):
 
 
 class DataChoices(Choices, metaclass=DataChoicesMeta):
-    """Class for creating enumerated choices bound to dataclass instances."""
+    """Class for creating enumerated choices of complex data."""
 
     __member_label__: str
     __member_value__: str
@@ -60,28 +86,25 @@ class DataChoices(Choices, metaclass=DataChoicesMeta):
 
     @enum_property
     def value(self):  # noqa: D102
-        return self._resolve_choice_property(self.__member_value__)
+        attr = self.__member_value__
+        return self._resolve_choice_prop(attr)
 
     @enum_property
     def label(self):  # noqa: D102
-        default_attr = None
-        if isinstance(self._value_, type):
-            default_attr = '__name__'
-        elif type(self._value_).__str__ is not object.__str__:
-            default_attr = '__str__'
+        attr = self.__member_label__
+        if attr == '':
+            if isinstance(self._value_, type):
+                attr = '__name__'
+            elif type(self._value_).__str__ is not object.__str__:
+                attr = '__str__'
+        return self._resolve_choice_prop(attr)
 
-        return self._resolve_choice_property(self.__member_label__, default_attr)
-
-    def _resolve_choice_property(self, attr=None, default_attr=None):
-        if attr is None:
-            return self._name_
-        if isinstance(self._value_, Mapping):
-            return self._value_.get(attr) if attr else self._name_
-
+    def _resolve_choice_prop(self, attr: None | str):
         if attr:
-            attr_value = getattr(self._value_, attr)
-        elif default_attr:
-            attr_value = getattr(self._value_, default_attr, self._name_)
+            if isinstance(self._value_, Mapping):
+                attr_value = self._value_[attr]
+            else:
+                attr_value = getattr(self._value_, attr)
         else:
             attr_value = self._name_
         return attr_value() if callable(attr_value) else attr_value
