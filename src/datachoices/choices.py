@@ -11,36 +11,31 @@ else:
 
 
 def validate_data_choices_enum(enumeration):  # noqa: D103
-    value_member_map = {}
-    label_member_map = {}
+    value_map = {}
+    label_map = {}
 
-    def _check_property_is_valid(
-        _member_name,
-        _member,
-        property_member_map,
-        property_name: str,
-        property_attribute: str,
+    def _check_prop_is_valid(
+        member_name,
+        member_value,
+        prop_map,
+        prop_name: str,
+        prop_attr: str,
     ):
         try:
-            value = getattr(_member, property_name)
+            value = getattr(member_value, prop_name)
         except (AttributeError, KeyError):
             raise ValueError(
-                f'{property_name} property "{getattr(enumeration, property_attribute)}" is invalid for {enumeration} member {_member_name}'
+                f'{prop_name} property "{prop_attr}" is invalid for {enumeration} member {member_name}'
             )
         if not value or not isinstance(value, str):
             raise ValueError(
-                f'{property_name} property "{getattr(enumeration, property_attribute)}" of {enumeration} member {_member_name} must be a non-empty string'
+                f'{prop_name} property "{prop_attr}" of {enumeration} member {member_name} must be a non-empty string'
             )
-        property_member_map.setdefault(value, []).append(_member_name)
+        prop_map.setdefault(value, []).append(member_name)
 
-    def _check_property_duplicates(
-        property_member_map,
-        property_name: str,
-    ):
+    def _check_prop_duplicates(prop_map, prop_name: str):
         duplicate_values = {
-            value: members
-            for value, members in property_member_map.items()
-            if len(members) > 1
+            value: members for value, members in prop_map.items() if len(members) > 1
         }
         if duplicate_values:
             alias_details = ', '.join(
@@ -50,25 +45,25 @@ def validate_data_choices_enum(enumeration):  # noqa: D103
                 ]
             )
             raise ValueError(
-                f'duplicate {property_name}s found in {enumeration}: {alias_details}'
+                f'duplicate {prop_name}s found in {enumeration}: {alias_details}'
             )
 
     for name, member in enumeration.__members__.items():
-        _check_property_is_valid(
-            name, member, value_member_map, 'value', '__member_value__'
+        _check_prop_is_valid(
+            name, member, value_map, 'value', enumeration.__member_value__
         )
-        _check_property_is_valid(
-            name, member, label_member_map, 'label', '__member_label__'
+        _check_prop_is_valid(
+            name, member, label_map, 'label', enumeration.__member_label__
         )
 
-    _check_property_duplicates(value_member_map, 'value')
-    _check_property_duplicates(label_member_map, 'label')
+    _check_prop_duplicates(value_map, 'value')
+    _check_prop_duplicates(label_map, 'label')
 
     return enumeration
 
 
 class DataChoicesMeta(ChoicesType):
-    """Modified ChoicesType metaclass for DataChoices."""
+    """Metaclass for creating DataChoices."""
 
     def __new__(  # noqa: D102
         metacls, classname, bases, class_dict, label='', value='', **kwargs
@@ -80,7 +75,7 @@ class DataChoicesMeta(ChoicesType):
 
 
 class DataChoices(Choices, metaclass=DataChoicesMeta):
-    """Class for creating enumerated choices bound to dataclass instances."""
+    """Class for creating enumerated choices of complex data."""
 
     __member_label__: str
     __member_value__: str
@@ -92,7 +87,7 @@ class DataChoices(Choices, metaclass=DataChoicesMeta):
     @enum_property
     def value(self):  # noqa: D102
         attr = self.__member_value__
-        return self._resolve_choice_property(attr)
+        return self._resolve_choice_prop(attr)
 
     @enum_property
     def label(self):  # noqa: D102
@@ -102,9 +97,9 @@ class DataChoices(Choices, metaclass=DataChoicesMeta):
                 attr = '__name__'
             elif type(self._value_).__str__ is not object.__str__:
                 attr = '__str__'
-        return self._resolve_choice_property(attr)
+        return self._resolve_choice_prop(attr)
 
-    def _resolve_choice_property(self, attr: None | str):
+    def _resolve_choice_prop(self, attr: None | str):
         if attr:
             if isinstance(self._value_, Mapping):
                 attr_value = self._value_[attr]
