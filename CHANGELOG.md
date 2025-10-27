@@ -2,6 +2,27 @@
 
 <!-- version list -->
 
+## v1.0.0 (2025-10-27)
+
+### Chores
+
+- Code cleanup
+  ([`1d2c4fc`](https://github.com/blu14x/django-datachoices/commit/1d2c4fc7cca718e3e1301c86d487d471ffc0adda))
+
+### Documentation
+
+- Fix readme example error
+  ([`4eb48a7`](https://github.com/blu14x/django-datachoices/commit/4eb48a7b8e1fbf3f959171f497afc2fb88c4b5bb))
+
+- Proper readme file
+  ([`fbb63a0`](https://github.com/blu14x/django-datachoices/commit/fbb63a00afe5b4c68b469f80fdf4d04a5a6f83bc))
+
+### Refactoring
+
+- Value/label properties
+  ([`68d8858`](https://github.com/blu14x/django-datachoices/commit/68d88581072c88c99d970f7d2d7b6128daf42964))
+
+
 ## v0.1.3 (2025-10-02)
 
 ### Chores
