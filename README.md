@@ -133,7 +133,7 @@ class MyModel(models.Model):
 "Super Mario 64 & Super Mario Galaxy"
 > instance.get_games_data()
 [
-    {"title": "Super Mario Sunshine", "id": "GMSP01", "year": 2002},
+    {"title": "Super Mario 64", "id": "NAAE", "year": 1996},
     {"title": "Super Mario Galaxy", "id": "RMGP01", "year": 2007}
 ]
 ```
