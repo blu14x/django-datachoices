@@ -1,15 +1,9 @@
 from datachoices import DataChoices
-from django.test import SimpleTestCase
 
 __unittest = True
 
 
-class DataChoicesTestCase(SimpleTestCase):
-    __test__ = False
-
-    def __init_subclass__(cls, **kwargs):
-        cls.__test__ = True
-
+class DCTestMixin:
     member_type = None
     members_dict = {  # noqa: RUF012
         'FOO': ('foo', 'footastic', 1),
@@ -61,13 +55,13 @@ class DataChoicesTestCase(SimpleTestCase):
     def test_invalid_values(self):
         with self.assertRaisesMessage(
             ValueError,
-            'value property "not_a_property" is invalid for <enum \'Choices\'> member FOO',
+            "value property is invalid for <enum 'Choices'> member FOO",
         ):
             self._make_choices_class(value='not_a_property')
 
         with self.assertRaisesMessage(
             ValueError,
-            'value property "number" of <enum \'Choices\'> member FOO must be a non-empty string',
+            "value property of <enum 'Choices'> member FOO must be a non-empty string",
         ):
             self._make_choices_class(value='number')
 
@@ -80,13 +74,13 @@ class DataChoicesTestCase(SimpleTestCase):
     def test_invalid_labels(self):
         with self.assertRaisesMessage(
             ValueError,
-            'label property "not_a_property" is invalid for <enum \'Choices\'> member FOO',
+            "label property is invalid for <enum 'Choices'> member FOO",
         ):
             self._make_choices_class(label='not_a_property')
 
         with self.assertRaisesMessage(
             ValueError,
-            'label property "number" of <enum \'Choices\'> member FOO must be a non-empty string',
+            "label property of <enum 'Choices'> member FOO must be a non-empty string",
         ):
             self._make_choices_class(label='number')
 

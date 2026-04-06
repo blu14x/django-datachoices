@@ -2,6 +2,7 @@ from datachoices import DataChoiceArrayField
 from django.core.exceptions import ValidationError
 from django.forms import MultipleChoiceField
 from django.test import TestCase
+from django.utils.translation import override
 from testapp.choices import MaterialChoices, ShapeChoices
 from testapp.models import DataChoiceArrayTestModel
 
@@ -81,6 +82,11 @@ class DataChoiceFieldTestCase(TestCase):
         self.assertEqual('Wood', instance.get_materials_display())
         self.assertEqual('Metal & Wood', instance.get_materials_default_display())
         self.assertEqual('', instance.get_materials_non_required_display())
+
+        with override('de'):
+            self.assertEqual('Holz', instance.get_materials_display())
+            self.assertEqual('Metall & Holz', instance.get_materials_default_display())
+            self.assertEqual('', instance.get_materials_non_required_display())
 
         self.assertEqual([MaterialChoices.WOOD._value_], instance.get_materials_data())
         self.assertEqual(

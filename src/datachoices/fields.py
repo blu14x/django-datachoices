@@ -105,6 +105,7 @@ class DataChoiceArrayField(DataChoicesFieldMixin, ArrayField):
         defaults = {
             'form_class': MultipleChoiceField,
             'choices': self.base_field.choices,
+            'initial': [choice.value for choice in self.get_default() or []],
         }
         defaults.update(kwargs)
         return super(ArrayField, self).formfield(**defaults)

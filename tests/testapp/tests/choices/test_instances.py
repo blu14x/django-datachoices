@@ -1,7 +1,8 @@
-from testapp.tests.choices.base import DataChoicesTestCase
+from django.test import SimpleTestCase
+from testapp.tests.choices.base import DCTestMixin
 
 
-class ClassInstancesTestCase(DataChoicesTestCase):
+class ClassInstancesTestCase(DCTestMixin, SimpleTestCase):
     class SomeClass:
         def __init__(self, _id, text, number):
             self.id = _id

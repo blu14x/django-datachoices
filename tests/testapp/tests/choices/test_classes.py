@@ -1,7 +1,8 @@
-from testapp.tests.choices.base import DataChoicesTestCase
+from django.test import SimpleTestCase
+from testapp.tests.choices.base import DCTestMixin
 
 
-class ClassesTestCase(DataChoicesTestCase):
+class ClassesTestCase(DCTestMixin, SimpleTestCase):
     class FooClass:
         id = 'foo'
         text = 'footastic'

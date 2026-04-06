@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 
-from testapp.tests.choices.base import DataChoicesTestCase
+from django.test import SimpleTestCase
+from testapp.tests.choices.base import DCTestMixin
 
 
-class DataclassesTestCase(DataChoicesTestCase):
+class DataclassesTestCase(DCTestMixin, SimpleTestCase):
     @dataclass(frozen=True)
     class SomeClass:
         id: str

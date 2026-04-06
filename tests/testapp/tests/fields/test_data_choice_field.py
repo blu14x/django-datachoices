@@ -1,6 +1,7 @@
 from datachoices import DataChoiceField
 from django.core.exceptions import ValidationError
 from django.test import TestCase
+from django.utils.translation import override
 from testapp.choices import ShapeChoices
 from testapp.models import DataChoiceTestModel
 
@@ -65,6 +66,11 @@ class DataChoiceFieldTestCase(TestCase):
         self.assertEqual('Pentagon', instance.get_shape_display())
         self.assertEqual('Square', instance.get_shape_default_display())
         self.assertEqual('', instance.get_shape_non_required_display())
+
+        with override('de'):
+            self.assertEqual('Pentagon', instance.get_shape_display())
+            self.assertEqual('Quadrat', instance.get_shape_default_display())
+            self.assertEqual('', instance.get_shape_non_required_display())
 
         self.assertEqual(ShapeChoices.PENTAGON._value_, instance.get_shape_data())
         self.assertEqual(ShapeChoices.SQUARE._value_, instance.get_shape_default_data())

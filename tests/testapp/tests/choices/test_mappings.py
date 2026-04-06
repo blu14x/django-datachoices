@@ -1,7 +1,8 @@
-from testapp.tests.choices.base import DataChoicesTestCase
+from django.test import SimpleTestCase
+from testapp.tests.choices.base import DCTestMixin
 
 
-class MappingsTestCase(DataChoicesTestCase):
+class MappingsTestCase(DCTestMixin, SimpleTestCase):
     @classmethod
     def _make_member(cls, *args, **kwargs):
         _id, text, number = args

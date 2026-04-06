@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from datachoices import DataChoices
+from django.utils.translation import gettext_lazy as _
 
 
 @dataclass(frozen=True)
@@ -13,10 +14,10 @@ class Shape:
 
 
 class ShapeChoices(Shape, DataChoices):
-    TRIANGLE = 'Triangle', 3
-    SQUARE = 'Square', 4
-    PENTAGON = 'Pentagon', 5
-    HEXAGON = 'Hexagon', 6
+    TRIANGLE = _('Triangle'), 3
+    SQUARE = _('Square'), 4
+    PENTAGON = _('Pentagon'), 5
+    HEXAGON = _('Hexagon'), 6
 
 
 @dataclass(frozen=True)
@@ -29,7 +30,7 @@ class Material:
 
 
 class MaterialChoices(Material, DataChoices):
-    METAL = 'Metal', 0.5
-    PLASTIC = 'Plastic', 1.0
-    STONE = 'Stone', 4.0
-    WOOD = 'Wood', 7.0
+    METAL = _('Metal'), 0.5
+    PLASTIC = _('Plastic'), 1.0
+    STONE = _('Stone'), 4.0
+    WOOD = _('Wood'), 7.0

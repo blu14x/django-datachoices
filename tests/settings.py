@@ -1,4 +1,7 @@
+import os
+
 SECRET_KEY = 'secretkeyfortestingistopsecret'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DEBUG = True
 ALLOWED_HOSTS = ['*']
@@ -22,6 +25,7 @@ TEMPLATES = [
 
 MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -36,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.staticfiles',
     'django.contrib.messages',
+    'django.contrib.postgres',
     'testapp',
 ]
 
@@ -46,8 +51,12 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'HOST': 'localhost',
         'PORT': '5432',
-        'NAME': 'dj_dc_database',
+        'NAME': 'django_datachoices_test_db',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
     }
 }
+
+LANGUAGE_CODE = 'en'
+LANGUAGES = [('en', 'English'), ('de', 'German')]
+LOCALE_PATHS = [os.path.join(BASE_DIR, 'locale')]
