@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.1.0 (2026-04-06)
+
+### Features
+
+- Support translation strings for labels
+  ([`c491e5b`](https://github.com/blu14x/django-datachoices/commit/c491e5bf1822afe732980142d40fc50f614804b8))
+
+
 ## v1.0.0 (2025-10-27)
 
 ### Chores
